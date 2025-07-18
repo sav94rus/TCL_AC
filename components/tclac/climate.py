@@ -15,7 +15,6 @@ from esphome.const import (
     CONF_TARGET_TEMPERATURE,
     CONF_SUPPORTED_FAN_MODES,
     CONF_SUPPORTED_SWING_MODES,
-    CONF_CURRENT_TEMPERATURE,
 )
 
 from esphome.components.climate import (
@@ -31,7 +30,6 @@ DEPENDENCIES = ["climate", "uart"]
 TCLAC_MIN_TEMPERATURE = 16.0
 TCLAC_MAX_TEMPERATURE = 31.0
 TCLAC_TARGET_TEMPERATURE_STEP = 1.0
-TCLAC_CURRENT_TEMPERATURE_STEP = 1.0
 
 CONF_RX_LED = "rx_led"
 CONF_TX_LED = "tx_led"
@@ -131,13 +129,12 @@ def validate_visual(config):
         else:
             config[CONF_VISUAL][CONF_MAX_TEMPERATURE] = TCLAC_MAX_TEMPERATURE
         if CONF_TEMPERATURE_STEP in visual_config:
-            temp_step = config[CONF_VISUAL][CONF_TEMPERATURE_STEP][CONF_TARGET_TEMPERATURE]
+            temp_step = config[CONF_VISUAL][CONF_TEMPERATURE_STEP].get(CONF_TARGET_TEMPERATURE, TCLAC_TARGET_TEMPERATURE_STEP)
             if ((int)(temp_step * 2)) / 2 != temp_step:
                 raise cv.Invalid(f"Шаг температуры {temp_step} некорректен, должен быть кратен 1")
         else:
             config[CONF_VISUAL][CONF_TEMPERATURE_STEP] = {
                 CONF_TARGET_TEMPERATURE: TCLAC_TARGET_TEMPERATURE_STEP,
-                CONF_CURRENT_TEMPERATURE: TCLAC_CURRENT_TEMPERATURE_STEP,
             }
     else:
         config[CONF_VISUAL] = {
@@ -145,7 +142,6 @@ def validate_visual(config):
             CONF_MAX_TEMPERATURE: TCLAC_MAX_TEMPERATURE,
             CONF_TEMPERATURE_STEP: {
                 CONF_TARGET_TEMPERATURE: TCLAC_TARGET_TEMPERATURE_STEP,
-                CONF_CURRENT_TEMPERATURE: TCLAC_CURRENT_TEMPERATURE_STEP,
             },
         }
     return config
