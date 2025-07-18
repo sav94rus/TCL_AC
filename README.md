@@ -71,7 +71,7 @@ esphome:
 ```yaml
 packages:
   remote_package:
-    url: https://github.com/I-am-nightingale/tclac.git
+    url: https://github.com/sav94rus/TCL_AC.git
     ref: master
     files:
     # v - равнение строк с опциями вот по этой позиции, иначе глючить будет
