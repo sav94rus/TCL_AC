@@ -72,7 +72,7 @@ esphome:
 packages:
   remote_package:
     url: https://github.com/sav94rus/TCL_AC.git
-    ref: master
+    ref: main
     files:
     # v - равнение строк с опциями вот по этой позиции, иначе глючить будет
       - packages/core.yaml # Ядро всего сущего
