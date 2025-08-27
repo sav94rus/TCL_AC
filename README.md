@@ -109,4 +109,3 @@ packages:
 
     refresh: 30s
 ```
-![Uploading scale_2400.jpg…]()
