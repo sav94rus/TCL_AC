@@ -105,6 +105,8 @@ packages:
     files:
     # v - равнение строк с опциями вот по этой позиции, иначе глючить будет
       - packages/core.yaml # Ядро всего сущего
-        - packages/leds.yaml
+        - packages/leds.yaml![scale_2400](https://github.com/user-attachments/assets/f609c91e-4b63-4975-8244-008fcf601f5d)
+
     refresh: 30s
 ```
+![Uploading scale_2400.jpg…]()
