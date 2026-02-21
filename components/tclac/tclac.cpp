@@ -16,27 +16,11 @@ ClimateTraits tclacClimate::traits() {
 	traits.set_supports_current_temperature(true);
 	traits.set_supports_two_point_target_temperature(false);
 
-	// ---- FIX for ESPHome 2026.x: std::set -> Mask ----
-	climate::ClimateModeMask mode_mask;
-	for (auto m : this->supported_modes_)
-		mode_mask.add(m);
-	traits.set_supported_modes(mode_mask);
-
-	climate::ClimatePresetMask preset_mask;
-	for (auto p : this->supported_presets_)
-		preset_mask.add(p);
-	traits.set_supported_presets(preset_mask);
-
-	climate::ClimateFanModeMask fan_mask;
-	for (auto f : this->supported_fan_modes_)
-		fan_mask.add(f);
-	traits.set_supported_fan_modes(fan_mask);
-
-	climate::ClimateSwingModeMask swing_mask;
-	for (auto s : this->supported_swing_modes_)
-		swing_mask.add(s);
-	traits.set_supported_swing_modes(swing_mask);
-	// -----------------------------------------------
+	// ESPHome 2026.x — FiniteSetMask вместо std::set
+	traits.set_supported_modes(climate::ClimateModeMask(this->supported_modes_));
+	traits.set_supported_presets(climate::ClimatePresetMask(this->supported_presets_));
+	traits.set_supported_fan_modes(climate::ClimateFanModeMask(this->supported_fan_modes_));
+	traits.set_supported_swing_modes(climate::ClimateSwingModeMask(this->supported_swing_modes_));
 
 	traits.add_supported_mode(climate::CLIMATE_MODE_OFF);			// Выключенный режим кондиционера доступен всегда
 	traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);			// Автоматический режим кондиционера тоже
@@ -403,6 +387,40 @@ void tclacClimate::takeControl() {
 			break;
 	}
 
+        //Режим заслонок
+		//	Вертикальная заслонка
+		//		Качание вертикальной заслонки [10 байт, маска 00111000]:
+		//			000 - Качание отключено, заслонка в последней позиции или в фиксации
+		//			111 - Качание включено в выбранном режиме
+		//		Режим качания вертикальной заслонки (режим фиксации заслонки роли не играет, если качание включено) [32 байт, маска 00011000]:
+		//			01 - качание сверху вниз, ПО УМОЛЧАНИЮ
+		//			10 - качание в верхней половине
+		//			11 - качание в нижней половине
+		//		Режим фиксации заслонки (режим качания заслонки роли не играет, если качание выключено) [32 байт, маска 00000111]:
+		//			000 - нет фиксации, ПО УМОЛЧАНИЮ
+		//			001 - фиксация вверху
+		//			010 - фиксация между верхом и серединой
+		//			011 - фиксация в середине
+		//			100 - фиксация между серединой и низом
+		//			101 - фиксация внизу
+		//	Горизонтальные заслонки
+		//		Качание горизонтальных заслонок [11 байт, маска 00001000]:
+		//			0 - Качание отключено, заслонки в последней позиции или в фиксации
+		//			1 - Качание включено в выбранном режиме
+		//		Режим качания горизонтальных заслонок (режим фиксации заслонок роли не играет, если качание включено) [33 байт, маска 00111000]:
+		//			001 - качание слева направо, ПО УМОЛЧАНИЮ
+		//			010 - качание слева
+		//			011 - качание по середине
+		//			100 - качание справа
+		//		Режим фиксации горизонтальных заслонок (режим качания заслонок роли не играет, если качание выключено) [33 байт, маска 00000111]:
+		//			000 - нет фиксации, ПО УМОЛЧАНИЮ
+		//			001 - фиксация слева
+		//			010 - фиксация между левой стороной и серединой
+		//			011 - фиксация в середине
+		//			100 - фиксация между серединой и правой стороной
+		//			101 - фиксация справа
+		
+		
 	// Устанавливаем режим для качания вертикальной заслонки
 	switch(vertical_swing_direction_) {
 		case VerticalSwingDirection::UP_DOWN:
@@ -535,7 +553,9 @@ void tclacClimate::takeControl() {
 // Отправка данных в кондиционер
 void tclacClimate::sendData(byte * message, byte size) {
 	tclacClimate::dataShow(1,1);
+	//Serial.write(message, size);
 	this->esphome::uart::UARTDevice::write_array(message, size);
+	//auto raw = getHex(message, size);
 	ESP_LOGD("TCL", "Message to TCL sended...");
 	tclacClimate::dataShow(1,0);
 }
