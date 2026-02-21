@@ -1,6 +1,6 @@
 /**
-
-**/
+ *
+ **/
 #include "esphome.h"
 #include "esphome/core/defines.h"
 #include "tclac.h"
@@ -16,11 +16,28 @@ ClimateTraits tclacClimate::traits() {
 	traits.set_supports_current_temperature(true);
 	traits.set_supports_two_point_target_temperature(false);
 
-	traits.set_supported_modes(this->supported_modes_);
-	traits.set_supported_presets(this->supported_presets_);
-	traits.set_supported_fan_modes(this->supported_fan_modes_);
-	traits.set_supported_swing_modes(this->supported_swing_modes_);
-	
+	// ---- FIX for ESPHome 2026.x: std::set -> Mask ----
+	climate::ClimateModeMask mode_mask;
+	for (auto m : this->supported_modes_)
+		mode_mask.add(m);
+	traits.set_supported_modes(mode_mask);
+
+	climate::ClimatePresetMask preset_mask;
+	for (auto p : this->supported_presets_)
+		preset_mask.add(p);
+	traits.set_supported_presets(preset_mask);
+
+	climate::ClimateFanModeMask fan_mask;
+	for (auto f : this->supported_fan_modes_)
+		fan_mask.add(f);
+	traits.set_supported_fan_modes(fan_mask);
+
+	climate::ClimateSwingModeMask swing_mask;
+	for (auto s : this->supported_swing_modes_)
+		swing_mask.add(s);
+	traits.set_supported_swing_modes(swing_mask);
+	// -----------------------------------------------
+
 	traits.add_supported_mode(climate::CLIMATE_MODE_OFF);			// Выключенный режим кондиционера доступен всегда
 	traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);			// Автоматический режим кондиционера тоже
 	traits.add_supported_fan_mode(climate::CLIMATE_FAN_AUTO);		// Автоматический режим вентилятора доступен всегда
@@ -386,40 +403,6 @@ void tclacClimate::takeControl() {
 			break;
 	}
 
-        //Режим заслонок
-		//	Вертикальная заслонка
-		//		Качание вертикальной заслонки [10 байт, маска 00111000]:
-		//			000 - Качание отключено, заслонка в последней позиции или в фиксации
-		//			111 - Качание включено в выбранном режиме
-		//		Режим качания вертикальной заслонки (режим фиксации заслонки роли не играет, если качание включено) [32 байт, маска 00011000]:
-		//			01 - качание сверху вниз, ПО УМОЛЧАНИЮ
-		//			10 - качание в верхней половине
-		//			11 - качание в нижней половине
-		//		Режим фиксации заслонки (режим качания заслонки роли не играет, если качание выключено) [32 байт, маска 00000111]:
-		//			000 - нет фиксации, ПО УМОЛЧАНИЮ
-		//			001 - фиксация вверху
-		//			010 - фиксация между верхом и серединой
-		//			011 - фиксация в середине
-		//			100 - фиксация между серединой и низом
-		//			101 - фиксация внизу
-		//	Горизонтальные заслонки
-		//		Качание горизонтальных заслонок [11 байт, маска 00001000]:
-		//			0 - Качание отключено, заслонки в последней позиции или в фиксации
-		//			1 - Качание включено в выбранном режиме
-		//		Режим качания горизонтальных заслонок (режим фиксации заслонок роли не играет, если качание включено) [33 байт, маска 00111000]:
-		//			001 - качание слева направо, ПО УМОЛЧАНИЮ
-		//			010 - качание слева
-		//			011 - качание по середине
-		//			100 - качание справа
-		//		Режим фиксации горизонтальных заслонок (режим качания заслонок роли не играет, если качание выключено) [33 байт, маска 00000111]:
-		//			000 - нет фиксации, ПО УМОЛЧАНИЮ
-		//			001 - фиксация слева
-		//			010 - фиксация между левой стороной и серединой
-		//			011 - фиксация в середине
-		//			100 - фиксация между серединой и правой стороной
-		//			101 - фиксация справа
-		
-		
 	// Устанавливаем режим для качания вертикальной заслонки
 	switch(vertical_swing_direction_) {
 		case VerticalSwingDirection::UP_DOWN:
@@ -520,11 +503,6 @@ void tclacClimate::takeControl() {
 	dataTX[4] = 0x20;	//0x20 - управление, 0x19 - опрос
 	dataTX[5] = 0x03;	//??
 	dataTX[6] = 0x01;	//??
-	//dataTX[7] = 0x64;	//eco,display,beep,ontimerenable, offtimerenable,power,0,0
-	//dataTX[8] = 0x08;	//mute,0,turbo,health, mode(4) mode 01 heat, 02 dry, 03 cool, 07 fan, 08 auto, health(+16), 41=turbo-heat 43=turbo-cool (turbo = 0x40+ 0x01..0x08)
-	//dataTX[9] = 0x0f;	//0 -31 ;    15 - 16 0,0,0,0, temp(4) settemp 31 - x
-	//dataTX[10] = 0x00;	//0,timerindicator,swingv(3),fan(3) fan+swing modes //0=auto 1=low 2=med 3=high
-	//dataTX[11] = 0x00;	//0,offtimer(6),0
 	dataTX[12] = 0x00;	//fahrenheit,ontimer(6),0 cf 80=f 0=c
 	dataTX[13] = 0x01;	//??
 	dataTX[14] = 0x00;	//0,0,halfdegree,0,0,0,0,0
@@ -532,7 +510,6 @@ void tclacClimate::takeControl() {
 	dataTX[16] = 0x00;	//??
 	dataTX[17] = 0x00;	//??
 	dataTX[18] = 0x00;	//??
-	//dataTX[19] = 0x00;	//sleep on = 1 off=0
 	dataTX[20] = 0x00;	//??
 	dataTX[21] = 0x00;	//??
 	dataTX[22] = 0x00;	//??
@@ -544,8 +521,6 @@ void tclacClimate::takeControl() {
 	dataTX[28] = 0x00;	//??
 	dataTX[30] = 0x00;	//??
 	dataTX[31] = 0x00;	//??
-	//dataTX[32] = 0x00;	//0,0,0,режим вертикального качания(2),режим вертикальной фиксации(3)
-	//dataTX[33] = 0x00;	//0,0,режим горизонтального качания(3),режим горизонтальной фиксации(3)
 	dataTX[34] = 0x00;	//??
 	dataTX[35] = 0x00;	//??
 	dataTX[36] = 0x00;	//??
@@ -560,9 +535,7 @@ void tclacClimate::takeControl() {
 // Отправка данных в кондиционер
 void tclacClimate::sendData(byte * message, byte size) {
 	tclacClimate::dataShow(1,1);
-	//Serial.write(message, size);
 	this->esphome::uart::UARTDevice::write_array(message, size);
-	//auto raw = getHex(message, size);
 	ESP_LOGD("TCL", "Message to TCL sended...");
 	tclacClimate::dataShow(1,0);
 }
