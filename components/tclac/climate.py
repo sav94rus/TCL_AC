@@ -158,8 +158,8 @@ def validate_visual(config):
 # Проверка конфигурации компонента и принятие значений по умолчанию
 CONFIG_SCHEMA = cv.All(
     # БЫЛО: climate.CLIMATE_SCHEMA.extend(...)
-    # СТАЛО:
-    climate.climate_schema().extend(
+    # СТАЛО (для ESPHome 2026.2.1): climate.climate_schema(tclacClimate).extend(...)
+    climate.climate_schema(tclacClimate).extend(
         {
             cv.GenerateID(): cv.declare_id(tclacClimate),
             cv.Optional(CONF_BEEPER, default=True): cv.boolean,
