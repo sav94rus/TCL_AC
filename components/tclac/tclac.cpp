@@ -12,9 +12,7 @@ namespace tclac{
 ClimateTraits tclacClimate::traits() {
 	auto traits = climate::ClimateTraits();
 
-	traits.set_supports_action(false);
-	traits.set_supports_current_temperature(true);
-	traits.set_supports_two_point_target_temperature(false);
+	traits.set_has_current_temperature(true);
 
 	// ESPHome 2026.x: FiniteSetMask заполняется через insert()
 	climate::ClimateModeMask mode_mask;
@@ -37,11 +35,11 @@ ClimateTraits tclacClimate::traits() {
 		swing_mask.insert(s);
 	traits.set_supported_swing_modes(swing_mask);
 
-	traits.add_supported_mode(climate::CLIMATE_MODE_OFF);			// Выключенный режим кондиционера доступен всегда
-	traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);			// Автоматический режим кондиционера тоже
-	traits.add_supported_fan_mode(climate::CLIMATE_FAN_AUTO);		// Автоматический режим вентилятора доступен всегда
-	traits.add_supported_swing_mode(climate::CLIMATE_SWING_OFF);	// Выключенный режим качания заслонок доступен всегда
-	traits.add_supported_preset(ClimatePreset::CLIMATE_PRESET_NONE);// На всякий случай без предустановок
+	traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
+	traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
+	traits.add_supported_fan_mode(climate::CLIMATE_FAN_AUTO);
+	traits.add_supported_swing_mode(climate::CLIMATE_SWING_OFF);
+	traits.add_supported_preset(ClimatePreset::CLIMATE_PRESET_NONE);
 
 	return traits;
 }
