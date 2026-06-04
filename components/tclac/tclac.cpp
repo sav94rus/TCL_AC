@@ -12,7 +12,7 @@ namespace tclac{
 ClimateTraits tclacClimate::traits() {
 	auto traits = climate::ClimateTraits();
 
-	traits.set_has_current_temperature(true);
+	traits.add_feature_flags(climate::CLIMATE_SUPPORTS_CURRENT_TEMPERATURE);
 
 	// ESPHome 2026.x: FiniteSetMask заполняется через insert()
 	climate::ClimateModeMask mode_mask;
